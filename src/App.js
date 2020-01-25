@@ -68,7 +68,7 @@ class App extends Component {
   state = {
     userData: [],
     repoStats: [],
-    langStats:[],
+    langStats:{},
     error: null,
     loading: true,
     query: ""

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Doughnut } from "react-chartjs-2";
-import GhPolyglot from "gh-polyglot";
+//import GhPolyglot from "gh-polyglot";
 import styled from "styled-components";
 
 const ChartContainer = styled.div`
@@ -34,7 +34,7 @@ function Chart(props){
   return(
     <ChartContainer>
       <h1>Languages Used</h1>
-      <Doughnut data={props.langStats || null} options={options} />
+      <Doughnut data={props.langStats || {}} options={options} />
     </ChartContainer>
   )
 }
