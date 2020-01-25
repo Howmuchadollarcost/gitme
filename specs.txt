@@ -1,0 +1,25 @@
+userStats => array
+	- label: lang.name
+	- value: projects with the lang.
+	- color: color of the lang
+
+userStats => array
+	- label: lang.name
+	- value: projects with the lang.
+	- color: color of the lang
+
+getAllRepos => array
+	- id
+	- node_id
+	- fullName: username/repo
+	- public/private: t/F
+	- owner => all infos
+	- htmlUrl
+	- url
+	- created time
+	- Last updated time
+	- pushed time
+	- language
+	- forks
+	- size
+	- language
