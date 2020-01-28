@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { MdLibraryBooks } from "react-icons/md";
+import {TitleReducer, DescReducer, ByteFormatter, GetTopRepos} from '../../middlewares/middleware'
 
 const ReposList = styled.section`
   width: 250px;
@@ -72,7 +73,10 @@ const RepoSizeAndLanguage = styled.div`
 `;
 
 function index(props) {
-  const getRepos = props.repoStats ? props.repoStats.slice(0, 4) : [];
+  let repoStats = (props.repoStats ? props.repoStats : [])
+  const sorted = GetTopRepos(repoStats);
+  const getRepos = sorted.slice(0, 4);
+
 
   let repos;
 
@@ -82,14 +86,14 @@ function index(props) {
         <Repo key={i} active={i === 0 ? true : false}>
           <RepoName>
             <MdLibraryBooks color={"#ED6975"} />
-            <h1 className="reponame">{repo.name}</h1>
+            <h1 className="reponame"> {TitleReducer(repo.name)}</h1>
           </RepoName>
           <RepoDiscription>
-            {repo.description ? <p>{repo.description} </p> : <p> - </p>}
+            {repo.description ? <p>{DescReducer(repo.description)}</p> : <p> - </p>}
           </RepoDiscription>
           <RepoSizeAndLanguage>
             {repo.language ? <p>{repo.language}</p> : <p> other </p>}
-            <p> {repo.size} </p>
+            <p>{ByteFormatter(repo.size)} </p>
           </RepoSizeAndLanguage>
         </Repo>
       );

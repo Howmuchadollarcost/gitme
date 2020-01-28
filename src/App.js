@@ -5,7 +5,7 @@ import GhPolyglot from "gh-polyglot";
 import Chart from "./component/Chart";
 import Profile from "./container/Profile";
 import Repos from "./container/Repos";
-
+import MoonLoader from "react-spinners/MoonLoader";
 
 const MainContainer = styled.div`
   position: relative;
@@ -68,22 +68,31 @@ class App extends Component {
   state = {
     userData: [],
     repoStats: [],
-    langStats:[],
+    langStats: {},
     error: null,
     loading: true,
-    query: ""
+    query: "Entername"
   };
 
-  // componentDidMount() {
-  //   this.timer= setTimeout(() => {
-  //     this.fetchUserData();
-  //     this.fetchReposData();
-  //   }, 400);
-  // }
+  componentDidMount() {
+    this.timer = setTimeout(() => {
+      this.fetchReposData(this.state.query);
+      this.fetchUserData(this.state.query);
+      this.fetchLanguagesData(this.state.query);
+    }, 500);
+  }
 
   fetchReposData(user) {
     var me = new GhPolyglot(`${user}`);
     me.getAllRepos((err, stats) => {
+
+      if(err){
+        console.err("Error: ",err);
+        this.setState({
+          err
+        })
+      }
+      
       this.setState({
         repoStats: stats
       });
@@ -100,7 +109,12 @@ class App extends Component {
           loading: false
         });
       })
-      .catch(error => this.setState({ error }));
+      .catch(error =>
+        this.setState({
+          error,
+          loading: false
+        })
+      );
   }
 
   fetchLanguagesData(user) {
@@ -109,6 +123,14 @@ class App extends Component {
     const repoData = [];
     const repoBackground = [];
     me.userStats((err, stats) => {
+
+      if(err){
+        console.error("Error: ", err);
+        this.setState({
+          err
+        })
+      }
+
       if (stats) {
         stats.forEach(stat => {
           repoLabels.push(stat.label);
@@ -136,8 +158,7 @@ class App extends Component {
   }
 
   render() {
-    const { userData, repoStats,langStats } = this.state;
-
+    const { userData, repoStats, langStats, loading } = this.state;
     return (
       <React.Fragment>
         <form

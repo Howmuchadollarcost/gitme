@@ -1,16 +1,15 @@
 import React from "react";
 
 function index(props) {
-    console.log(props)
   return (
     <div>
-      <form>
+      <form onSubmit={props.handleSubmit} >
         <input
           type="text"
           name="name"
           id="name"
           value={props.query}
-          onChange={e => this.setState({ query: e.target.value })}
+          onChange={props.handleChange}
         />
       </form>
     </div>
