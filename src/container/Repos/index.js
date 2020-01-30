@@ -100,7 +100,7 @@ function index(props) {
     });
   }
 
-  return <ReposList>{repos}</ReposList>;
+  return <ReposList>{repos ? repos : (<h1 style={{color: '#998BAB',}}>No repos</h1>) }</ReposList>;
 }
 
 export default index;

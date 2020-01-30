@@ -5,13 +5,16 @@ import GhPolyglot from "gh-polyglot";
 import Chart from "./component/Chart";
 import Profile from "./container/Profile";
 import Repos from "./container/Repos";
+import Form from "./container/Form";
+import RateLimit from "./container/RateLimit"
 import MoonLoader from "react-spinners/MoonLoader";
 
 const MainContainer = styled.div`
   position: relative;
-  width: 100vw;
+  width: 99%;
   height: 100vh;
   background: #fff;
+  overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -69,31 +72,29 @@ class App extends Component {
     userData: [],
     repoStats: [],
     langStats: {},
+    rateLimit: {},
     error: null,
-    loading: true,
-    query: "Entername"
+    loading: false,
+    query: ""
   };
 
   componentDidMount() {
-    this.timer = setTimeout(() => {
-      this.fetchReposData(this.state.query);
-      this.fetchUserData(this.state.query);
-      this.fetchLanguagesData(this.state.query);
-    }, 500);
+    console.log(this.state.rateLimit)
   }
 
   fetchReposData(user) {
     var me = new GhPolyglot(`${user}`);
     me.getAllRepos((err, stats) => {
-
-      if(err){
-        console.err("Error: ",err);
+      if (err) {
+        console.error("Repo Error: ", err);
         this.setState({
-          err
-        })
+          err,
+          loading: false
+        });
       }
-      
+
       this.setState({
+        loading: false,
         repoStats: stats
       });
     });
@@ -123,12 +124,11 @@ class App extends Component {
     const repoData = [];
     const repoBackground = [];
     me.userStats((err, stats) => {
-
-      if(err){
-        console.error("Error: ", err);
+      if (err) {
+        console.error("Language Error: ", err);
         this.setState({
           err
-        })
+        });
       }
 
       if (stats) {
@@ -153,51 +153,72 @@ class App extends Component {
     });
   }
 
+  getRateLimit(){
+    const rateLimitURL = `https://api.github.com/rate_limit`
+    fetch(rateLimitURL)
+      .then(res => res.json())
+      .then(data => {
+        this.setState({
+          rateLimit: data.resources.core
+        })
+      })
+  }
+
+  handleChange(e) {
+    this.setState({
+      query: e.target.value
+    });
+  }
+
+  handleSubmit(e) {
+    e.preventDefault();
+    if (this.state.query.length > 0) {
+      this.fetchReposData(this.state.query);
+      this.fetchUserData(this.state.query);
+      this.fetchLanguagesData(this.state.query);
+      this.getRateLimit();
+      this.setState({
+        query: "",
+        loading: true
+      });
+    }
+  }
+
   componentWillUnmount() {
     clearInterval(this.timer);
   }
 
   render() {
-    const { userData, repoStats, langStats, loading } = this.state;
+    const { userData, repoStats, langStats, loading, rateLimit } = this.state;
     return (
       <React.Fragment>
-        <form
-          onSubmit={e => {
-            e.preventDefault();
-            this.fetchReposData(this.state.query);
-            this.fetchUserData(this.state.query);
-            this.fetchLanguagesData(this.state.query);
-            this.setState({
-              query: ""
-            });
-          }}
-        >
-          <input
-            type="text"
-            name="username"
-            id="username"
-            value={this.state.query}
-            onChange={e => this.setState({ query: e.target.value })}
-          />
-          <button>Submit</button>
-        </form>
-        <MainContainer>
-          <StatsContainer>
-            <Profile userData={userData} />
+        <RateLimit rateLimit={rateLimit} />
+        <Form handleSubmit={this.handleSubmit.bind(this)} query={this.state.query} handleChange={this.handleChange.bind(this)} />
+        {loading ? (
+          <MainContainer>
+            <MoonLoader />
+          </MainContainer>
+        ) : (
+          <React.Fragment>
+            <MainContainer>
+              <StatsContainer>
+                <Profile userData={userData} />
 
-            <RepoStats>
-              <TopRepos>
-                <h1>Top Repositories</h1>
+                <RepoStats>
+                  <TopRepos>
+                    <h1>Top Repositories</h1>
 
-                <Repos repoStats={repoStats} />
-              </TopRepos>
+                    <Repos repoStats={repoStats} />
+                  </TopRepos>
 
-              <ChartContainer>
-                <Chart langStats={langStats} />
-              </ChartContainer>
-            </RepoStats>
-          </StatsContainer>
-        </MainContainer>
+                  <ChartContainer>
+                    <Chart langStats={langStats} />
+                  </ChartContainer>
+                </RepoStats>
+              </StatsContainer>
+            </MainContainer>
+          </React.Fragment>
+        )}
       </React.Fragment>
     );
   }
