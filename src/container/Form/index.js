@@ -7,8 +7,9 @@ const Input = styled.input`
   border: 1px solid #ED6975;
   margin: 0 5px;
   outline:none;
+  transition: border 2s ease-out;
   :focus{
-    border: 3px solid #ED6975;
+    border: 1px solid #3B7470;
   }
 `
 
@@ -48,6 +49,7 @@ function index(props) {
           id="username"
           value={props.query}
           placeholder="Enter Github Username"
+          autoComplete="off"
           onChange={props.handleChange} />
         <Button>Submit</Button>
       </form>
