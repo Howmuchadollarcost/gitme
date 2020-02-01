@@ -78,11 +78,10 @@ class App extends Component {
     query: ""
   };
 
-  componentDidMount() {
-    console.log(this.state.rateLimit)
-  }
-
   fetchReposData(user) {
+    this.setState({
+      loading: true
+    })
     var me = new GhPolyglot(`${user}`);
     me.getAllRepos((err, stats) => {
       if (err) {
@@ -100,25 +99,29 @@ class App extends Component {
     });
   }
 
-  fetchUserData(user) {
-    const userURL = `http://api.github.com/users/${user}`;
-    fetch(userURL)
-      .then(res => res.json())
-      .then(data => {
-        this.setState({
-          userData: data,
-          loading: false
-        });
+  async fetchUserData(user){
+    try{
+      const userURL = `http://api.github.com/users/${user}`;
+      const response = await fetch(userURL);
+      const data = await response.json();
+      this.setState({
+        userData: data,
+        loading: false
+      });
+    }
+    catch(error){
+      this.setState({
+        error,
+        loading: false
       })
-      .catch(error =>
-        this.setState({
-          error,
-          loading: false
-        })
-      );
+    }
+
   }
 
   fetchLanguagesData(user) {
+    this.setState({
+      loading: true
+    })
     var me = new GhPolyglot(`${user}`);
     const repoLabels = [];
     const repoData = [];
@@ -147,21 +150,21 @@ class App extends Component {
           ]
         };
         this.setState({
-          langStats: dataConfig
+          langStats: dataConfig,
+          loading:false
         });
       }
     });
   }
 
-  getRateLimit(){
-    const rateLimitURL = `https://api.github.com/rate_limit`
-    fetch(rateLimitURL)
-      .then(res => res.json())
-      .then(data => {
-        this.setState({
-          rateLimit: data.resources.core
-        })
-      })
+  async getRateLimit(){
+    const rateLimitURL = `https://api.github.com/rate_limit`;
+    const response = await fetch(rateLimitURL);
+    const data = await response.json();
+
+    this.setState({
+      rateLimit: data.resources.core
+    })
   }
 
   handleChange(e) {
