@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Doughnut } from "react-chartjs-2";
-//import GhPolyglot from "gh-polyglot";
 import styled from "styled-components";
 
 const ChartContainer = styled.div`
@@ -29,8 +28,6 @@ const options = {
 
 
 function Chart(props){
-  console.log(props.langStats);
-
   return(
     <ChartContainer>
       <h1>Languages Used</h1>
@@ -88,31 +85,6 @@ function Chart(props){
 //   );
 // }
 
-// class Chart extends Component {
 
-// 	state={
-//     repoStats: {}
-// 	}
-
-// 	componentDidMount(){
-// 		this.fetchReposData();
-// 	}
-
-//   
-
-//   render() {
-//     return (
-//       <div
-//         style={{
-//           maxWidth: '500px',
-//           maxHeight: '500px'
-//         }
-//         }
-//       >
-//         <Doughnut data={this.state.repoStats || null} options={{ maintainAspectRatio: true }}  />
-//       </div>
-//     );
-//   }
-// }
 
 export default Chart;

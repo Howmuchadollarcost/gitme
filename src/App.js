@@ -5,13 +5,16 @@ import GhPolyglot from "gh-polyglot";
 import Chart from "./component/Chart";
 import Profile from "./container/Profile";
 import Repos from "./container/Repos";
-
+import Form from "./container/Form";
+import RateLimit from "./container/RateLimit"
+import MoonLoader from "react-spinners/MoonLoader";
 
 const MainContainer = styled.div`
   position: relative;
-  width: 100vw;
+  width: 99%;
   height: 100vh;
   background: #fff;
+  overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -68,47 +71,69 @@ class App extends Component {
   state = {
     userData: [],
     repoStats: [],
-    langStats:{},
+    langStats: {},
+    rateLimit: {},
     error: null,
-    loading: true,
+    loading: false,
     query: ""
   };
 
-  // componentDidMount() {
-  //   this.timer= setTimeout(() => {
-  //     this.fetchUserData();
-  //     this.fetchReposData();
-  //   }, 400);
-  // }
-
   fetchReposData(user) {
+    this.setState({
+      loading: true
+    })
     var me = new GhPolyglot(`${user}`);
     me.getAllRepos((err, stats) => {
+      if (err) {
+        console.error("Repo Error: ", err);
+        this.setState({
+          err,
+          loading: false
+        });
+      }
+
       this.setState({
+        loading: false,
         repoStats: stats
       });
     });
   }
 
-  fetchUserData(user) {
-    const userURL = `http://api.github.com/users/${user}`;
-    fetch(userURL)
-      .then(res => res.json())
-      .then(data => {
-        this.setState({
-          userData: data,
-          loading: false
-        });
+  async fetchUserData(user){
+    try{
+      const userURL = `http://api.github.com/users/${user}`;
+      const response = await fetch(userURL);
+      const data = await response.json();
+      this.setState({
+        userData: data,
+        loading: false
+      });
+    }
+    catch(error){
+      this.setState({
+        error,
+        loading: false
       })
-      .catch(error => this.setState({ error }));
+    }
+
   }
 
   fetchLanguagesData(user) {
+    this.setState({
+      loading: true
+    })
     var me = new GhPolyglot(`${user}`);
     const repoLabels = [];
     const repoData = [];
     const repoBackground = [];
     me.userStats((err, stats) => {
+      if (err) {
+        console.error("Language Error: ", err);
+        this.setState({
+          err
+        });
+      }
+
       if (stats) {
         stats.forEach(stat => {
           repoLabels.push(stat.label);
@@ -125,10 +150,41 @@ class App extends Component {
           ]
         };
         this.setState({
-          langStats: dataConfig
+          langStats: dataConfig,
+          loading:false
         });
       }
     });
+  }
+
+  async getRateLimit(){
+    const rateLimitURL = `https://api.github.com/rate_limit`;
+    const response = await fetch(rateLimitURL);
+    const data = await response.json();
+
+    this.setState({
+      rateLimit: data.resources.core
+    })
+  }
+
+  handleChange(e) {
+    this.setState({
+      query: e.target.value
+    });
+  }
+
+  handleSubmit(e) {
+    e.preventDefault();
+    if (this.state.query.length > 0) {
+      this.fetchReposData(this.state.query);
+      this.fetchUserData(this.state.query);
+      this.fetchLanguagesData(this.state.query);
+      this.getRateLimit();
+      this.setState({
+        query: "",
+        loading: true
+      });
+    }
   }
 
   componentWillUnmount() {
@@ -136,47 +192,36 @@ class App extends Component {
   }
 
   render() {
-    const { userData, repoStats,langStats } = this.state;
-
+    const { userData, repoStats, langStats, loading, rateLimit } = this.state;
     return (
       <React.Fragment>
-        <form
-          onSubmit={e => {
-            e.preventDefault();
-            this.fetchReposData(this.state.query);
-            this.fetchUserData(this.state.query);
-            this.fetchLanguagesData(this.state.query);
-            this.setState({
-              query: ""
-            });
-          }}
-        >
-          <input
-            type="text"
-            name="username"
-            id="username"
-            value={this.state.query}
-            onChange={e => this.setState({ query: e.target.value })}
-          />
-          <button>Submit</button>
-        </form>
-        <MainContainer>
-          <StatsContainer>
-            <Profile userData={userData} />
+        <RateLimit rateLimit={rateLimit} />
+        <Form handleSubmit={this.handleSubmit.bind(this)} query={this.state.query} handleChange={this.handleChange.bind(this)} />
+        {loading ? (
+          <MainContainer>
+            <MoonLoader />
+          </MainContainer>
+        ) : (
+          <React.Fragment>
+            <MainContainer>
+              <StatsContainer>
+                <Profile userData={userData} />
 
-            <RepoStats>
-              <TopRepos>
-                <h1>Top Repositories</h1>
+                <RepoStats>
+                  <TopRepos>
+                    <h1>Top Repositories</h1>
 
-                <Repos repoStats={repoStats} />
-              </TopRepos>
+                    <Repos repoStats={repoStats} />
+                  </TopRepos>
 
-              <ChartContainer>
-                <Chart langStats={langStats} />
-              </ChartContainer>
-            </RepoStats>
-          </StatsContainer>
-        </MainContainer>
+                  <ChartContainer>
+                    <Chart langStats={langStats} />
+                  </ChartContainer>
+                </RepoStats>
+              </StatsContainer>
+            </MainContainer>
+          </React.Fragment>
+        )}
       </React.Fragment>
     );
   }
