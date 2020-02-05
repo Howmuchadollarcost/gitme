@@ -2,6 +2,8 @@ import React from "react";
 import styled from "styled-components";
 import { FaCalendar } from "react-icons/fa";
 
+import { DataConsumer } from "../../DataContext";
+
 const UserContainer = styled.div`
   position: relative;
   top: 10%;
@@ -92,35 +94,42 @@ const UserRepo = styled.section`
   }
 `;
 
-function index(props) {
-  const date = new Date(props.userData.created_at).toLocaleString();
+function Profile() {
   return (
-    <UserContainer>
-      <UserProfile>
-        {props.userData ? <h1>{props.userData.name}</h1> : <h1>Mhm</h1>}
-        {props.userData ? <p>@{props.userData.login}</p> : <p>Mhm</p>}
-        <span>
-          <FaCalendar color={"#ED6975"} />
-          Joined {props.userData ? date : null}
-        </span>
-      </UserProfile>
-      <UserPic src={props.userData.avatar_url} />
-      <UserStats>
-        <UserRepo>
-          <p>{props.userData.public_repos}</p>
-          <p>Repos</p>
-        </UserRepo>
-        <UserRepo>
-          <p>{props.userData.followers}</p>
-          <p>Followers</p>
-        </UserRepo>
-        <UserRepo>
-          <p>{props.userData.following}</p>
-          <p>Following</p>
-        </UserRepo>
-      </UserStats>
-    </UserContainer>
+    <DataConsumer>
+      {({ userData }) => {
+        const date = (userData.length !== 0) ? new Date(userData.created_at).toLocaleString() : null;
+        return (
+        <UserContainer>
+          <UserProfile>
+            {userData ? <h1>{userData.name}</h1> : <h1>Mhm</h1>}
+            {userData ? <p>@{userData.login}</p> : <p>Mhm</p>}
+            <span>
+              <FaCalendar color={"#ED6975"} />
+              Joined{" "}
+              {date}
+            </span>
+          </UserProfile>
+          <UserPic src={userData.avatar_url} />
+          <UserStats>
+            <UserRepo>
+              <p>{userData.public_repos}</p>
+              <p>Repos</p>
+            </UserRepo>
+            <UserRepo>
+              <p>{userData.followers}</p>
+              <p>Followers</p>
+            </UserRepo>
+            <UserRepo>
+              <p>{userData.following}</p>
+              <p>Following</p>
+            </UserRepo>
+          </UserStats>
+        </UserContainer>
+        )
+      }}
+    </DataConsumer>
   );
 }
 
-export default index;
+export default Profile;
