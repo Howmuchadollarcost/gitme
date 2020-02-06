@@ -38,7 +38,7 @@ const DataProvider = props => {
 
   const fetchUserData = async (username) => {
     try {
-      const userURL = `http://api.github.com/users/${username}`;
+      const userURL = `https://api.github.com/users/${username}`;
       const response = await fetch(userURL);
       const data = await response.json();
       setUserData(data);
