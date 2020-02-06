@@ -1,43 +1,48 @@
-import React from 'react';
-import styled from 'styled-components';
+import React from "react";
+import styled from "styled-components";
+
+import { DataConsumer } from "../../DataContext";
 
 const LimitStyle = styled.main`
-    .limit{
-        position: absolute;
-        top: 0;
-        left: 0;
-        padding: 1rem;
-    }
+  .limit {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 1rem;
+  }
 
-    .num{
-        color: #998BAB;
-        font-size: 20px;
-        margin-bottom: 0.5rem;
-    }
+  .num {
+    color: #998bab;
+    font-size: 20px;
+    margin-bottom: 0.5rem;
+  }
 
-    p{
-        text-transform: uppercase;
-        font-size: 10px;
-        letter-spacint: 1px;
-        margin: 0;
-        color: #998BAB;
-    }
-`
+  p {
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacint: 1px;
+    margin: 0;
+    color: #998bab;
+  }
+`;
 
-function index({rateLimit}) {
-    let rateLimitLength = Object.entries(rateLimit).length
-    return (
+function RateLimit() {
+  return (
+    <DataConsumer>
+      {({ rateLimit }) => (
         <LimitStyle>
-            {(rateLimitLength > 0) ? (
-                <div className="limit">
-                    <div className="num">
-                        {`${rateLimit.remaining} / ${rateLimit.limit}`}
-                    </div>
-                    <p>Requests Left</p>
-                </div>
-            ) : null}
+          {Object.entries(rateLimit).length > 0 ? (
+            <div className="limit">
+              <div className="num">
+                {`${rateLimit.remaining} / ${rateLimit.limit}`}
+              </div>
+              <p>Requests Left</p>
+            </div>
+          ) : null}
         </LimitStyle>
-    );
+      )}
+    </DataConsumer>
+  );
 }
 
-export default index;
+export default RateLimit;

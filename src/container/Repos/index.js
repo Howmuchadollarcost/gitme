@@ -1,7 +1,14 @@
 import React from "react";
 import styled from "styled-components";
 import { MdLibraryBooks } from "react-icons/md";
-import {TitleReducer, DescReducer, ByteFormatter, GetTopRepos} from '../../middlewares/middleware'
+
+import { DataConsumer } from "../../DataContext";
+import {
+  TitleReducer,
+  DescReducer,
+  ByteFormatter,
+  GetTopRepos
+} from "../../middlewares/middleware";
 
 const ReposList = styled.section`
   width: 250px;
@@ -73,34 +80,45 @@ const RepoSizeAndLanguage = styled.div`
 `;
 
 function index(props) {
-  let repoStats = (props.repoStats ? props.repoStats : [])
-  const sorted = GetTopRepos(repoStats);
-  const getRepos = sorted.slice(0, 4);
-
-
   let repos;
+  return (
+    <DataConsumer>
+      {({ repoStats }) => {
+        repoStats = repoStats ? repoStats : [];
+        const sorted = GetTopRepos(repoStats);
+        const getRepos = sorted.slice(0, 4);
+        if (getRepos.length > 0) {
+          repos = getRepos.map((repo, i) => {
+            return (
+              <Repo key={i} active={i === 0 ? true : false}>
+                <RepoName>
+                  <MdLibraryBooks color={"#ED6975"} />
+                  <h1 className="reponame"> {TitleReducer(repo.name)}</h1>
+                </RepoName>
+                <RepoDiscription>
+                  {repo.description ? (
+                    <p>{DescReducer(repo.description)}</p>
+                  ) : (
+                    <p> - </p>
+                  )}
+                </RepoDiscription>
+                <RepoSizeAndLanguage>
+                  {repo.language ? <p>{repo.language}</p> : <p> other </p>}
+                  <p>{ByteFormatter(repo.size)} </p>
+                </RepoSizeAndLanguage>
+              </Repo>
+            );
+          });
+        }
 
-  if (getRepos.length > 0) {
-    repos = getRepos.map((repo, i) => {
-      return (
-        <Repo key={i} active={i === 0 ? true : false}>
-          <RepoName>
-            <MdLibraryBooks color={"#ED6975"} />
-            <h1 className="reponame"> {TitleReducer(repo.name)}</h1>
-          </RepoName>
-          <RepoDiscription>
-            {repo.description ? <p>{DescReducer(repo.description)}</p> : <p> - </p>}
-          </RepoDiscription>
-          <RepoSizeAndLanguage>
-            {repo.language ? <p>{repo.language}</p> : <p> other </p>}
-            <p>{ByteFormatter(repo.size)} </p>
-          </RepoSizeAndLanguage>
-        </Repo>
-      );
-    });
-  }
-
-  return <ReposList>{repos ? repos : (<h1 style={{color: '#998BAB',}}>No repos</h1>) }</ReposList>;
+        return (
+          <ReposList>
+            {repos ? repos : <h1 style={{ color: "#998BAB" }}>No repos</h1>}
+          </ReposList>
+        );
+      }}
+    </DataConsumer>
+  );
 }
 
 export default index;

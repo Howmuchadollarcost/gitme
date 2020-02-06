@@ -1,12 +1,13 @@
 import React, { Component } from "react";
 import styled from "styled-components";
 
-import GhPolyglot from "gh-polyglot";
+import { DataConsumer } from "./DataContext";
+
 import Chart from "./component/Chart";
 import Profile from "./container/Profile";
 import Repos from "./container/Repos";
 import Form from "./container/Form";
-import RateLimit from "./container/RateLimit"
+import RateLimit from "./container/RateLimit";
 import MoonLoader from "react-spinners/MoonLoader";
 
 const MainContainer = styled.div`
@@ -68,161 +69,41 @@ const ChartContainer = styled.section`
 `;
 
 class App extends Component {
-  state = {
-    userData: [],
-    repoStats: [],
-    langStats: {},
-    rateLimit: {},
-    error: null,
-    loading: false,
-    query: ""
-  };
-
-  fetchReposData(user) {
-    this.setState({
-      loading: true
-    })
-    var me = new GhPolyglot(`${user}`);
-    me.getAllRepos((err, stats) => {
-      if (err) {
-        console.error("Repo Error: ", err);
-        this.setState({
-          err,
-          loading: false
-        });
-      }
-
-      this.setState({
-        loading: false,
-        repoStats: stats
-      });
-    });
-  }
-
-  async fetchUserData(user){
-    try{
-      const userURL = `http://api.github.com/users/${user}`;
-      const response = await fetch(userURL);
-      const data = await response.json();
-      this.setState({
-        userData: data,
-        loading: false
-      });
-    }
-    catch(error){
-      this.setState({
-        error,
-        loading: false
-      })
-    }
-
-  }
-
-  fetchLanguagesData(user) {
-    this.setState({
-      loading: true
-    })
-    var me = new GhPolyglot(`${user}`);
-    const repoLabels = [];
-    const repoData = [];
-    const repoBackground = [];
-    me.userStats((err, stats) => {
-      if (err) {
-        console.error("Language Error: ", err);
-        this.setState({
-          err
-        });
-      }
-
-      if (stats) {
-        stats.forEach(stat => {
-          repoLabels.push(stat.label);
-          repoData.push(stat.value);
-          repoBackground.push(stat.color);
-        });
-        const dataConfig = {
-          labels: repoLabels,
-          datasets: [
-            {
-              data: repoData,
-              backgroundColor: repoBackground
-            }
-          ]
-        };
-        this.setState({
-          langStats: dataConfig,
-          loading:false
-        });
-      }
-    });
-  }
-
-  async getRateLimit(){
-    const rateLimitURL = `https://api.github.com/rate_limit`;
-    const response = await fetch(rateLimitURL);
-    const data = await response.json();
-
-    this.setState({
-      rateLimit: data.resources.core
-    })
-  }
-
-  handleChange(e) {
-    this.setState({
-      query: e.target.value
-    });
-  }
-
-  handleSubmit(e) {
-    e.preventDefault();
-    if (this.state.query.length > 0) {
-      this.fetchReposData(this.state.query);
-      this.fetchUserData(this.state.query);
-      this.fetchLanguagesData(this.state.query);
-      this.getRateLimit();
-      this.setState({
-        query: "",
-        loading: true
-      });
-    }
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.timer);
-  }
-
   render() {
-    const { userData, repoStats, langStats, loading, rateLimit } = this.state;
     return (
-      <React.Fragment>
-        <RateLimit rateLimit={rateLimit} />
-        <Form handleSubmit={this.handleSubmit.bind(this)} query={this.state.query} handleChange={this.handleChange.bind(this)} />
-        {loading ? (
-          <MainContainer>
-            <MoonLoader />
-          </MainContainer>
-        ) : (
+      <DataConsumer>
+        {({ loading }) => (
           <React.Fragment>
-            <MainContainer>
-              <StatsContainer>
-                <Profile userData={userData} />
+            <RateLimit />
+            <Form />
+            {loading ? (
+              <MainContainer>
+                <MoonLoader />
+              </MainContainer>
+            ) : (
+              <React.Fragment>
+                <MainContainer>
+                  <StatsContainer>
+                    <Profile />
 
-                <RepoStats>
-                  <TopRepos>
-                    <h1>Top Repositories</h1>
+                    <RepoStats>
+                      <TopRepos>
+                        <h1>Top Repositories</h1>
 
-                    <Repos repoStats={repoStats} />
-                  </TopRepos>
+                        <Repos />
+                      </TopRepos>
 
-                  <ChartContainer>
-                    <Chart langStats={langStats} />
-                  </ChartContainer>
-                </RepoStats>
-              </StatsContainer>
-            </MainContainer>
+                      <ChartContainer>
+                        <Chart />
+                      </ChartContainer>
+                    </RepoStats>
+                  </StatsContainer>
+                </MainContainer>
+              </React.Fragment>
+            )}
           </React.Fragment>
         )}
-      </React.Fragment>
+      </DataConsumer>
     );
   }
 }
