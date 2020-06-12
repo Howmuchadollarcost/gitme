@@ -98,9 +98,10 @@ const DataProvider = props => {
 
 
   const getRateLimit = async () => {
+    const proxyURL = "https://cors-anywhere.herokuapp.com/";
     try {
       const rateLimitURL = `https://api.github.com/rate_limit`;
-      const response = await fetch(rateLimitURL);
+      const response = await fetch(proxyURL + rateLimitURL);
       const data = await response.json();
       setRateLimit(data.resources.core);
     } catch (error) {
